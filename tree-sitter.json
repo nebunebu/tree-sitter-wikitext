@@ -1,0 +1,35 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "wikitext",
+      "camelcase": "Wikitext",
+      "title": "Wikitext",
+      "scope": "text.wikitext",
+      "path": ".",
+      "file-types": ["wiki", "mediawiki", "wikitext", "mw"],
+      "injection-regex": "^(wikitext|mediawiki|wiki)$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "MediaWiki wikitext grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "nebu"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/nebu/tree-sitter-wikitext"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": false,
+    "python": false,
+    "rust": false,
+    "swift": false
+  }
+}

@@ -1,0 +1,155 @@
+================================================================================
+Simple table
+================================================================================
+{|
+| a || b
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell
+      (text))
+    (table_cell
+      (text))))
+
+================================================================================
+Table with attributes, caption, rows, headers
+================================================================================
+{| class="wikitable" style="width: 100%"
+|+ The caption
+|-
+! Head one !! Head two
+|- style="background: red"
+| one || two
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_attributes
+      (attribute
+        (attribute_name)
+        (attribute_value))
+      (attribute
+        (attribute_name)
+        (attribute_value)))
+    (table_caption
+      (text))
+    (table_row)
+    (table_header_cell
+      (text))
+    (table_header_cell
+      (text))
+    (table_row)
+    (text)
+    (text)
+    (table_cell
+      (text))
+    (table_cell
+      (text))))
+
+================================================================================
+Cell attributes
+================================================================================
+{|
+| style="color: red" | red cell
+! scope="row" | header cell
+|+ align="center" | centered caption
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell
+      (table_cell_attributes
+        (text)
+        (text))
+      (text))
+    (table_header_cell
+      (table_cell_attributes
+        (text)
+        (text))
+      (text))
+    (table_caption
+      (table_cell_attributes
+        (text)
+        (text))
+      (text))))
+
+================================================================================
+Cell with pipe content but no attributes
+================================================================================
+{|
+| plain || another
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell
+      (text))
+    (table_cell
+      (text))))
+
+================================================================================
+Table with templates and links in cells
+================================================================================
+{|
+| {{tmpl|x}} || [[Page|link]]
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell
+      (table_cell_attributes
+        (text)
+        (template
+          (template_name
+            (text))
+          (template_argument
+            (text)))
+        (text)))
+    (text)
+    (wikilink
+      (link_target
+        (text))
+      (text))))
+
+================================================================================
+Nested table
+================================================================================
+{|
+|
+{|
+| inner
+|}
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell)
+    (table
+      (table_cell
+        (text)))))
+
+================================================================================
+Multi-line cell content
+================================================================================
+{|
+| first line
+continues here
+* even a list
+|}
+--------------------------------------------------------------------------------
+
+(document
+  (table
+    (table_cell
+      (text))
+    (text)
+    (list_item
+      (list_marker)
+      (text))))

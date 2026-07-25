@@ -1,0 +1,8 @@
+node_modules/
+build/
+*.so
+*.dylib
+*.wasm
+log.html
+.direnv/
+result

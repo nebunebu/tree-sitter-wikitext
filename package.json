@@ -1,0 +1,13 @@
+{
+  "name": "tree-sitter-wikitext",
+  "version": "0.1.0",
+  "description": "MediaWiki wikitext grammar for tree-sitter",
+  "license": "MIT",
+  "main": "grammar.js",
+  "keywords": [
+    "tree-sitter",
+    "wikitext",
+    "mediawiki",
+    "parser"
+  ]
+}
