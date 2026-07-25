@@ -39,6 +39,8 @@ module.exports = grammar({
     $._raw_end_name,      // matching name in the closing tag
     $.raw_text,           // raw content of an extension tag
     $._raw_self_close,    // /> closing a raw-content extension tag
+    $._html_tag_name,     // known HTML / transparent extension tag name
+    $._tag_slash,         // '/' of a closing tag, validated by lookahead
     $._error_sentinel,
   ],
 
@@ -184,6 +186,7 @@ module.exports = grammar({
       $.entity,
       $.template,
       $.parameter,
+      $.parser_function,
       '=', "'",
       token(/~+/), token(/-+/), token(/_+/), token(prec(1, /#+/)),
     )),
@@ -203,9 +206,10 @@ module.exports = grammar({
     ),
 
     // No /#+/ here: a name starting with '#' lexes as parser_function_name.
+    // '!' and '=' cover the {{!}} and {{=}} escape templates.
     template_name: $ => repeat1(choice(
-      $.text, $.entity, $.template, $.parameter,
-      "'", token(/-+/), token(/_+/), $._newline,
+      $.text, $.entity, $.template, $.parameter, $.parser_function,
+      "'", '!', '=', token(/-+/), token(/_+/), $._newline,
     )),
 
     template_argument: $ => seq(
@@ -217,8 +221,8 @@ module.exports = grammar({
     ),
 
     argument_name: $ => repeat1(choice(
-      $.text, $.entity, $.template, $.parameter,
-      "'", token(/-+/), token(/_+/), token(prec(1, /#+/)), $._newline,
+      $.text, $.entity, $.template, $.parameter, $.parser_function,
+      "'", '!', token(/-+/), token(/_+/), token(prec(1, /#+/)), $._newline,
     )),
 
     _arg_content: $ => choice(
@@ -245,8 +249,8 @@ module.exports = grammar({
     ),
 
     parameter_name: $ => repeat1(choice(
-      $.text, $.entity, $.template, $.parameter,
-      "'", token(/-+/), token(/_+/), token(prec(1, /#+/)), $._newline,
+      $.text, $.entity, $.template, $.parameter, $.parser_function,
+      "'", '!', token(/-+/), token(/_+/), token(prec(1, /#+/)), $._newline,
     )),
 
     // ------------------------------------------------------------------
@@ -263,8 +267,8 @@ module.exports = grammar({
     _wikilink_segment: $ => seq('|', repeat(choice($._inline, $._newline))),
 
     link_target: $ => repeat1(choice(
-      $.text, $.entity, $.template, $.parameter,
-      "'", '&', token(/-+/), token(/_+/), token(prec(1, /#+/)),
+      $.text, $.entity, $.template, $.parameter, $.parser_function,
+      "'", '&', '!', token(/-+/), token(/_+/), token(prec(1, /#+/)),
     )),
 
     external_link: $ => prec.dynamic(2, seq(
@@ -294,15 +298,20 @@ module.exports = grammar({
     // HTML tags and extension tags
     // ------------------------------------------------------------------
 
-    html_tag: $ => prec.dynamic(3, seq(
+    // Only known HTML tags and transparent extension tags are recognized
+    // (the scanner checks the name, like Parsoid's isXMLTag); anything else
+    // is prose. Tags are flat: open/close are not paired, matching wiki
+    // usage where HTML is routinely unbalanced.
+    html_tag: $ => seq(
       '<',
-      optional('/'),
-      $.tag_name,
+      optional(alias($._tag_slash, '/')),
+      alias($._html_tag_name, $.tag_name),
       repeat(seq($._tag_ws, optional($.attribute))),
       optional('/'),
       '>',
-    )),
+    ),
 
+    // Only used as an alias target for scanner-produced tag names.
     tag_name: _ => token(/[a-zA-Z][a-zA-Z0-9-]*/),
 
     // Raw-content extension tag; content is lexed by the external scanner so

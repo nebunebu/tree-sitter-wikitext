@@ -16,6 +16,10 @@
           "named": true
         },
         {
+          "type": "parser_function",
+          "named": true
+        },
+        {
           "type": "template",
           "named": true
         },
@@ -624,6 +628,10 @@
           "named": true
         },
         {
+          "type": "parser_function",
+          "named": true
+        },
+        {
           "type": "template",
           "named": true
         },
@@ -817,6 +825,10 @@
         },
         {
           "type": "parameter",
+          "named": true
+        },
+        {
+          "type": "parser_function",
           "named": true
         },
         {
@@ -1323,6 +1335,10 @@
           "named": true
         },
         {
+          "type": "parser_function",
+          "named": true
+        },
+        {
           "type": "template",
           "named": true
         },
@@ -1557,6 +1573,10 @@
         },
         {
           "type": "parameter",
+          "named": true
+        },
+        {
+          "type": "parser_function",
           "named": true
         },
         {

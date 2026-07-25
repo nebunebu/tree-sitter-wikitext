@@ -1,0 +1,63 @@
+{{Short description|A demonstration article}}
+{{Infobox widget
+| name     = Doohickey
+| type     = [[Gadget]]
+| inventor = Ada Lovelace
+| url      = https://example.com/doohickey
+}}
+
+The '''doohickey''' (from [[Middle English]] ''doo-hyckey'') is a widget used
+for demonstration purposes.<ref name="intro">{{cite web
+ | url = https://example.com/history
+ | title = A History of Doohickeys
+ | access-date = 2026-07-24
+}}</ref> It is standardized in RFC 2324 and catalogued as
+ISBN 978-0-306-40615-7.
+
+== Design ==
+
+The design follows three principles:
+
+* simplicity — as few parts as possible
+* durability
+* affordability<ref>{{cite book |title=Cheap Widgets |year=2020}}</ref>
+
+The governing equation is <math>E = mc^2</math>, implemented as:
+
+<syntaxhighlight lang="python">
+def energy(m, c=299_792_458):
+    return m * c ** 2
+</syntaxhighlight>
+
+=== Variants ===
+
+{| class="wikitable sortable"
+|+ Known variants
+|-
+! Name !! Year !! style="width: 8em" | Notes
+|-
+| Mark I || 1962 || first production run
+|-
+| Mark II || 1971 || style="background: #eee" | improved bearings
+|-
+| {{abbr|Mk III|Mark three}} || 1980 || see [[#History|below]]
+|}
+
+== History ==
+
+; origin : first attested in a <nowiki>{{fake template}}</nowiki> manual
+: the term spread quickly
+
+<div class="quote-box">
+<blockquote>A doohickey in time saves nine.<br/>— traditional</blockquote>
+</div>
+
+<!-- TODO: expand this section -->
+See [https://archive.example.org/doohickey the archive] for scans, or visit
+https://example.com directly.
+
+== References ==
+<references />
+
+[[Category:Widgets]]
+[[Category:1962 introductions]]

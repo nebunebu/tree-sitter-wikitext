@@ -16,8 +16,10 @@ HTML tags
       (attribute_name)
       (attribute_value)))
   (text)
-  (text)
-  (text))
+  (html_tag
+    (tag_name))
+  (html_tag
+    (tag_name)))
 
 ================================================================================
 Self-closing and void tags
@@ -55,7 +57,8 @@ Wikitext inside HTML
   (text)
   (bold
     (text))
-  (text))
+  (html_tag
+    (tag_name)))
 
 ================================================================================
 Template inside attribute value
@@ -70,7 +73,8 @@ Template inside attribute value
       (attribute_name)
       (attribute_value)))
   (text)
-  (text))
+  (html_tag
+    (tag_name)))
 
 ================================================================================
 Less-than that is not a tag
@@ -106,7 +110,8 @@ Transparent extension tag keeps wikitext
       (argument_name
         (text))
       (text)))
-  (text))
+  (html_tag
+    (tag_name)))
 
 ================================================================================
 Includeonly and noinclude are transparent
@@ -120,13 +125,15 @@ Includeonly and noinclude are transparent
   (template
     (template_name
       (text)))
-  (text)
+  (html_tag
+    (tag_name))
   (html_tag
     (tag_name))
   (wikilink
     (link_target
       (text)))
-  (text))
+  (html_tag
+    (tag_name)))
 
 ================================================================================
 Nowiki content is raw
@@ -205,3 +212,16 @@ Pre with fake close tag inside
     (tag_name)
     (raw_text)
     (tag_name)))
+
+================================================================================
+Unknown tags are prose
+================================================================================
+<notatag> and </notatag> and <id:liquid>
+--------------------------------------------------------------------------------
+
+(document
+  (text)
+  (text)
+  (text)
+  (text)
+  (text))

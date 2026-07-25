@@ -42,6 +42,8 @@ enum TokenType {
   RAW_END_NAME,
   RAW_TEXT,
   RAW_SELF_CLOSE,
+  HTML_TAG_NAME,
+  TAG_SLASH,
   ERROR_SENTINEL,
 };
 
@@ -66,6 +68,23 @@ static const char *const RAW_TAGS[] = {
   "source", "syntaxhighlight", "templatedata", "timeline",
 };
 #define N_RAW_TAGS (sizeof(RAW_TAGS) / sizeof(RAW_TAGS[0]))
+
+// HTML tags MediaWiki allows plus transparent extension tags whose content
+// stays wikitext (Parsoid's isXMLTag / extension tag map). Anything not in
+// this list or RAW_TAGS renders literally and is lexed as prose.
+static const char *const HTML_TAGS[] = {
+  "a", "abbr", "audio", "b", "bdi", "bdo", "big", "blockquote", "br",
+  "caption", "center", "cite", "code", "data", "dd", "del", "details",
+  "dfn", "div", "dl", "dt", "em", "figcaption", "figure", "font", "h1",
+  "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "includeonly",
+  "indicator", "ins", "kbd", "languages", "li", "link", "mark", "meta",
+  "noinclude", "ol", "onlyinclude", "p", "picture", "poem", "q", "rb",
+  "ref", "references", "rp", "rt", "rtc", "ruby", "s", "samp", "section",
+  "small", "span", "strike", "strong", "sub", "summary", "sup", "table",
+  "tbody", "td", "tfoot", "th", "thead", "time", "tr", "translate", "tt",
+  "tvar", "u", "ul", "var", "video", "wbr", "gallery", "choose", "option",
+};
+#define N_HTML_TAGS (sizeof(HTML_TAGS) / sizeof(HTML_TAGS[0]))
 
 typedef struct {
   const char *scheme; // lowercase, without trailing colon
@@ -279,31 +298,80 @@ static bool scan_quotes(Scanner *s, TSLexer *lexer, const bool *valid) {
 // Raw-content extension tags
 // ---------------------------------------------------------------------------
 
-// After `<`: match a raw-tag name, remember it for raw_text / the close tag.
-static bool scan_raw_start_name(Scanner *s, TSLexer *lexer) {
-  char buf[20];
+static bool scan_text(TSLexer *lexer, const bool *valid, uint32_t n,
+                      bool boundary);
+
+// Read a tag name (letters then alphanumerics), lowercased. Returns length,
+// 0 if too long.
+static size_t read_tag_name(TSLexer *lexer, char *buf, size_t cap) {
   size_t len = 0;
-  while (is_ascii_alpha(lexer->lookahead)) {
-    if (len >= sizeof(buf) - 1) return false;
+  while (is_ascii_alpha(lexer->lookahead) ||
+         (len > 0 && is_digit(lexer->lookahead))) {
+    if (len >= cap - 1) return 0;
     buf[len++] = (char)to_lower(lexer->lookahead);
     advance(lexer);
   }
-  if (len == 0) return false;
-  int32_t c = lexer->lookahead;
-  if (!(c == '>' || c == '/' || is_line_ws(c) || c == '\n' || c == '\r' ||
-        lexer->eof(lexer))) {
-    return false;
-  }
   buf[len] = '\0';
-  for (size_t i = 0; i < N_RAW_TAGS; i++) {
-    if (strcmp(buf, RAW_TAGS[i]) == 0) {
-      s->raw_tag = (uint8_t)(i + 1);
+  return len;
+}
+
+static bool valid_tag_name_end(TSLexer *lexer) {
+  int32_t c = lexer->lookahead;
+  return c == '>' || c == '/' || is_line_ws(c) || c == '\n' || c == '\r' ||
+         lexer->eof(lexer);
+}
+
+static int find_tag(const char *const *tags, size_t n, const char *name) {
+  for (size_t i = 0; i < n; i++) {
+    if (strcmp(name, tags[i]) == 0) return (int)i;
+  }
+  return -1;
+}
+
+// After `<`: a raw extension tag name (remembered for raw_text / the close
+// tag) or a known HTML tag name. An unknown name falls through to prose, so
+// `<notatag>` renders like MediaWiki does: literally.
+static bool scan_tag_name(Scanner *s, TSLexer *lexer, const bool *valid) {
+  char buf[20];
+  size_t len = read_tag_name(lexer, buf, sizeof(buf));
+
+  if (len > 0 && valid_tag_name_end(lexer)) {
+    if (valid[RAW_START_NAME]) {
+      int i = find_tag(RAW_TAGS, N_RAW_TAGS, buf);
+      if (i >= 0) {
+        s->raw_tag = (uint8_t)(i + 1);
+        lexer->mark_end(lexer);
+        lexer->result_symbol = RAW_START_NAME;
+        return true;
+      }
+    }
+    if (valid[HTML_TAG_NAME] &&
+        find_tag(HTML_TAGS, N_HTML_TAGS, buf) >= 0) {
       lexer->mark_end(lexer);
-      lexer->result_symbol = RAW_START_NAME;
+      lexer->result_symbol = HTML_TAG_NAME;
       return true;
     }
   }
-  return false;
+  // Not a known tag: everything consumed is text-safe.
+  lexer->mark_end(lexer);
+  return scan_text(lexer, valid, (uint32_t)(len > 0 ? len : 0), false);
+}
+
+// '/' of a closing tag: emitted only when a known HTML tag name follows, so
+// that `</div>` closes a tag while a stray `</nope>` stays prose.
+static bool scan_tag_slash(TSLexer *lexer, const bool *valid) {
+  advance(lexer); // '/'
+  lexer->mark_end(lexer);
+  char buf[20];
+  size_t len = read_tag_name(lexer, buf, sizeof(buf));
+  if (len > 0 && valid_tag_name_end(lexer) &&
+      find_tag(HTML_TAGS, N_HTML_TAGS, buf) >= 0) {
+    lexer->result_symbol = TAG_SLASH;
+    return true;
+  }
+  // The consumed '/' and letters are text-safe.
+  lexer->mark_end(lexer);
+  return scan_text(lexer, valid, (uint32_t)(1 + len), false);
 }
 
 // After `</`: the name of the current raw tag.
@@ -780,12 +848,13 @@ static bool scan(Scanner *s, TSLexer *lexer, const bool *valid) {
     return scan_quotes(s, lexer, valid);
   }
 
-  if (valid[RAW_START_NAME] && is_ascii_alpha(c)) {
-    return scan_raw_start_name(s, lexer);
+  if ((valid[RAW_START_NAME] || valid[HTML_TAG_NAME]) && is_ascii_alpha(c)) {
+    return scan_tag_name(s, lexer, valid);
   }
   if (valid[RAW_END_NAME]) return scan_raw_end_name(s, lexer);
   if (valid[RAW_TEXT]) return scan_raw_text(s, lexer);
   if (valid[RAW_SELF_CLOSE] && c == '/') return scan_raw_self_close(s, lexer);
+  if (valid[TAG_SLASH] && c == '/') return scan_tag_slash(lexer, valid);
 
   if (valid[BRACKET_URL] && is_ascii_alpha(c)) {
     if (match_protocol(lexer) && scan_url_body(lexer, true, BRACKET_URL)) {

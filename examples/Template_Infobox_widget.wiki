@@ -1,0 +1,62 @@
+<noinclude>
+{{Documentation subpage}}
+</noinclude><includeonly><div class="infobox" style="width: 22em; float: right">
+<div style="text-align: center; font-weight: bold">{{{name|{{PAGENAME}}}}}</div>
+{| class="infobox-table" style="width: 100%"
+|-
+! scope="row" | Type
+| {{{type|unknown}}}
+|-
+! scope="row" | Inventor
+| {{#if: {{{inventor|}}} | [[{{{inventor}}}]] | — }}
+|-
+! scope="row" | Website
+| {{#if: {{{url|}}} | [{{{url}}} official site] | }}
+|}
+</div></includeonly><noinclude>
+
+== Usage ==
+
+Copy this into an article:
+
+<syntaxhighlight lang="wikitext">
+{{Infobox widget
+| name     = Doohickey
+| type     = Gadget
+| inventor = Ada Lovelace
+| url      = https://example.com
+}}
+</syntaxhighlight>
+
+The parameters are documented for [[Wikipedia:VisualEditor|VisualEditor]] in
+the block below.
+
+<templatedata>
+{
+    "description": "An infobox for widgets.",
+    "format": "block",
+    "params": {
+        "name": {
+            "label": "Name",
+            "description": "Name of the widget",
+            "type": "string",
+            "suggested": true
+        },
+        "type": {
+            "label": "Type",
+            "type": "string"
+        },
+        "inventor": {
+            "label": "Inventor",
+            "type": "wiki-page-name"
+        },
+        "url": {
+            "label": "Website",
+            "type": "url"
+        }
+    }
+}
+</templatedata>
+
+[[Category:Infobox templates]]
+</noinclude>
