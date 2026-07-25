@@ -1,5 +1,7 @@
 # tree-sitter-wikitext
 
+> [!CAUTION] This entire repo is code generated.
+
 A [tree-sitter](https://tree-sitter.github.io/) grammar for MediaWiki
 wikitext (`.wiki`, `.mediawiki`, `.mw`), modeled on Parsoid's PEG tokenizer
 (`Grammar.pegphp`, kept in this repo as the syntax reference).
